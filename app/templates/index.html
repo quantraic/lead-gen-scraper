@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Gen Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        .checkbox-note {
+            color: #666;
+            font-size: 13px;
+            margin-left: 30px;
+            margin-top: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-estimate {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-estimate:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-search {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .estimate-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .estimate-box.show {
+            display: block;
+        }
+        
+        .estimate-box h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .estimate-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .estimate-total {
+            border-top: 2px solid #ddd;
+            margin-top: 8px;
+            padding-top: 12px;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .result-box {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+        }
+        
+        .result-box.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .result-box h3 {
+            color: #155724;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .result-box.error h3 {
+            color: #721c24;
+        }
+        
+        .result-item {
+            padding: 6px 0;
+            color: #155724;
+            font-size: 14px;
+        }
+        
+        .result-box.error .result-item {
+            color: #721c24;
+        }
+        
+        .sheet-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .sheet-link:hover {
+            background: #218838;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Lead Gen Scraper</h1>
+        <p class="subtitle">Extract business leads from Google Maps</p>
+        
+        <div class="info-box">
+            💡 First $200/month in API usage is free (~3,000-4,000 leads)
+        </div>
+        
+        <form id="searchForm">
+            <div class="form-group">
+                <label for="keyword">Keyword / Business Type</label>
+                <input 
+                    type="text" 
+                    id="keyword" 
+                    name="keyword" 
+                    placeholder="e.g., veterinary clinic, coffee shop, dentist"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="zipcode">Zip Code</label>
+                <input 
+                    type="text" 
+                    id="zipcode" 
+                    name="zipcode" 
+                    placeholder="e.g., 17815"
+                    pattern="[0-9]{5}"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="radius">Radius (miles)</label>
+                <input 
+                    type="number" 
+                    id="radius" 
+                    name="radius" 
+                    placeholder="e.g., 50"
+                    min="1"
+                    max="100"
+                    required
+                >
+            </div>
+            
+            <div class="checkbox-group">
+                <input 
+                    type="checkbox" 
+                    id="scrape_websites" 
+                    name="scrape_websites"
+                    checked
+                >
+                <label for="scrape_websites">Scrape websites for emails & social links</label>
+            </div>
+            <div class="checkbox-note">
+                Recommended: Adds ~1-2 seconds per result but extracts valuable contact info
+            </div>
+            
+            <div class="estimate-box" id="estimateBox">
+                <h3>💰 Cost Estimate</h3>
+                <div class="estimate-item">
+                    <span>Estimated Searches:</span>
+                    <span id="estSearches">-</span>
+                </div>
+                <div class="estimate-item">
+                    <span>Estimated Results:</span>
+                    <span id="estResults">-</span>
+                </div>
+                <div class="estimate-item estimate-total">
+                    <span>Estimated Cost:</span>
+                    <span id="estCost">$0.00</span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn-estimate" id="estimateBtn">
+                    💵 Estimate Cost
+                </button>
+                <button type="submit" class="btn-search" id="searchBtn">
+                    🚀 Run Search
+                </button>
+            </div>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching and scraping... This may take a few minutes.</p>
+        </div>
+        
+        <div class="result-box" id="resultBox">
+            <h3 id="resultTitle">✅ Search Complete!</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('searchForm');
+        const estimateBtn = document.getElementById('estimateBtn');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const resultBox = document.getElementById('resultBox');
+        const estimateBox = document.getElementById('estimateBox');
+        
+        // Estimate cost
+        estimateBtn.addEventListener('click', async () => {
+            const formData = new FormData(form);
+            
+            try {
+                estimateBtn.disabled = true;
+                estimateBtn.textContent = '⏳ Calculating...';
+                
+                const response = await fetch('/estimate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('estSearches').textContent = data.estimate.estimated_searches;
+                    document.getElementById('estResults').textContent = data.estimate.estimated_places;
+                    document.getElementById('estCost').textContent = '$' + data.estimate.total_cost.toFixed(2);
+                    estimateBox.classList.add('show');
+                } else {
+                    alert('Error estimating cost: ' + data.error);
+                }
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                estimateBtn.disabled = false;
+                estimateBtn.textContent = '💵 Estimate Cost';
+            }
+        });
+        
+        // Run search
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            // Show loading
+            loading.classList.add('show');
+            resultBox.classList.remove('show');
+            searchBtn.disabled = true;
+            estimateBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.classList.remove('show');
+                
+                // Show results
+                resultBox.classList.add('show');
+                
+                if (data.success) {
+                    resultBox.classList.remove('error');
+                    document.getElementById('resultTitle').textContent = '✅ Search Complete!';
+                    document.getElementById('resultContent').innerHTML = `
+                        <div class="result-item">📊 Results found: <strong>${data.results_count}</strong></div>
+                        <div class="result-item">📑 Tab name: <strong>${data.tab_name}</strong></div>
+                        <div class="result-item">💰 Estimated cost: <strong>$${data.estimated_cost.toFixed(2)}</strong></div>
+                        <a href="${data.sheet_url}" target="_blank" class="sheet-link">
+                            📊 Open Google Sheet
+                        </a>
+                    `;
+                } else {
+                    resultBox.classList.add('error');
+                    document.getElementById('resultTitle').textContent = '❌ Error';
+                    document.getElementById('resultContent').innerHTML = `
+                        <div class="result-item">${data.error}</div>
+                    `;
+                }
+                
+            } catch (error) {
+                loading.classList.remove('show');
+                resultBox.classList.add('show', 'error');
+                document.getElementById('resultTitle').textContent = '❌ Error';
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="result-item">${error.message}</div>
+                `;
+            } finally {
+                searchBtn.disabled = false;
+                estimateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
