@@ -5,6 +5,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from datetime import datetime
 import pickle
+import base64
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 
@@ -20,27 +21,46 @@ class SheetsHandler:
         """Authenticate and create Google Sheets service"""
         creds = None
         
-        # Token file stores the user's access and refresh tokens
-        if os.path.exists('token.pickle'):
+        # Check if running in production (Render) with base64 encoded token
+        token_base64 = os.getenv('GOOGLE_TOKEN_BASE64')
+        if token_base64:
+            # Decode base64 token for production
+            try:
+                token_data = base64.b64decode(token_base64)
+                creds = pickle.loads(token_data)
+                print("Loaded credentials from environment variable")
+            except Exception as e:
+                print(f"Error loading base64 token: {e}")
+        
+        # Check for local token file
+        if not creds and os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 creds = pickle.load(token)
+                print("Loaded credentials from token.pickle file")
         
         # If there are no (valid) credentials available, let the user log in
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
+                print("Refreshing expired credentials")
                 creds.refresh(Request())
             else:
+                print("Starting OAuth flow for new credentials")
                 flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', 
-                 SCOPES
-            )
+                    'credentials.json', 
+                    SCOPES
+                )
                 creds = flow.run_local_server(port=0)
             
-            # Save the credentials for the next run
-            with open('token.pickle', 'wb') as token:
-                pickle.dump(creds, token)
+            # Save the credentials for the next run (only works locally)
+            try:
+                with open('token.pickle', 'wb') as token:
+                    pickle.dump(creds, token)
+                print("Saved credentials to token.pickle")
+            except Exception as e:
+                print(f"Could not save token.pickle (normal in production): {e}")
         
         self.service = build('sheets', 'v4', credentials=creds)
+        print("Google Sheets service initialized successfully")
     
     def create_new_tab(self, tab_name):
         """Create a new tab/sheet in the spreadsheet"""
